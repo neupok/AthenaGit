@@ -4,15 +4,13 @@
  * and open the template in the editor.
  */
 package ru.domrf.athenegit;
-import java.io.File;
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -33,14 +31,12 @@ public class AtheneGit {
     private static String dbUserName;
     private static String dbPassword;
             
-    static void readConfig() throws ConfigurationException
-    {
-        Configurations configs = new Configurations();
-        PropertiesConfiguration config = configs.properties(new File("athenegit.properties"));
-        
-        dbUrl = config.getString(DB_URL_PARAM);
-        dbUserName = config.getString(DB_USER_NAME_PARAM);
-        dbPassword = config.getString(DB_USER_PWD_PARAM);        
+    static void readConfig() throws IOException {
+        Properties properties = new Properties();
+        properties.load(new FileInputStream("athenegit.properties"));
+        dbUrl = properties.getProperty(DB_URL_PARAM);
+        dbUserName = properties.getProperty(DB_USER_NAME_PARAM);
+        dbPassword = properties.getProperty(DB_USER_PWD_PARAM);        
     }
     
     private static void createSessionFactory() {
@@ -58,14 +54,15 @@ public class AtheneGit {
             readConfig();
             // Создание фабрики соединений
             createSessionFactory();
-            
-            
+
+            //
+
             Session session = sessionFactory.openSession();
-            Query q = session.createQuery("from DDLEvent where id = :id");
-            q.setParameter("id", new Long(1));
+            Query<DDLEvent> q = session.createQuery("from DDLEvent where id = :id", DDLEvent.class);
+            q.setParameter("id", 1L);
             List<DDLEvent> recs = q.list();
-        } catch (ConfigurationException ex) {
-            Logger.getLogger(AtheneGit.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
